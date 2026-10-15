@@ -1,0 +1,25 @@
+                                                                 September 13, 2026 through October 12, 2026
+JPMorgan Chase Bank, N.A.
+P O Box 182051                                                   Account Number:          000000987651234
+Columbus, OH 43218 - 2051
+
+CHECKING SUMMARY                Chase Total Checking
+                                                        INSTANCES                  AMOUNT
+Beginning Balance                                                                   $0.00
+Deposits and Additions                                           3               2,861.50
+Electronic Withdrawals                                           4                -523.83
+Ending Balance                                                   7              $2,337.67
+
+TRANSACTION DETAIL
+  DATE        DESCRIPTION                                                          AMOUNT          BALANCE
+              Beginning Balance                                                                     $0.00
+  09/29       Acme Corp Payroll PPD ID: 9988776655                               1,411.50         1,411.50
+  09/30       Online Transfer to SAV ...9012 transaction#: 1234567                 -100.00         1,311.50
+  10/01       Zelle Payment From Jane Doe 21837465                                  250.00         1,561.50
+  10/03       Orig CO Name:Stripe Orig ID:1800948598 Desc Date:261003 CO           1,200.00         2,761.50
+              Entry Descr:Transfer Sec:CCD
+                                                                                                Page 1 of 3
+  10/10       Card Purchase 10/09 Sq *Blue Bottle Coffee Chicago IL Card 1234        -5.75         2,755.75
+  10/10       Card Purchase 10/09 Sq *Blue Bottle Coffee Chicago IL Card 1234         5.75         2,750.00
+  10/12       Payment To Chase Card Ending IN 5678 10/12                            -412.33         2,337.67
+              Ending Balance                                                                     $2,337.67

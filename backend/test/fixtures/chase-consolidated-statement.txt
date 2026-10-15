@@ -1,0 +1,61 @@
+                                                                  March 2, 2026 through April 1, 2026
+JPMorgan Chase Bank, N.A.                                          Primary Account: 000000111112222
+                    CONSOLIDATED BALANCE SUMMARY
+      *start*global product
+                      CHASE TOTAL CHECKING
+                       TEST PERSON                                                  Account Number: 000000111112222
+      *end*global product
+      *start*summary
+                    CHECKING SUMMARY
+                                                                                     AMOUNT
+                  Beginning Balance                                               $1,000.00
+                  Deposits and Additions                                             500.00
+                  Checks Paid                                                        -40.00
+                  ATM & Debit Card Withdrawals                                       -20.00
+                  Electronic Withdrawals                                           -1,200.50
+                  Ending Balance                                                    $239.50
+      *end*summary
+*start*deposits and additions
+           DEPOSITS AND ADDITIONS
+                 DATE                   DESCRIPTION                                           AMOUNT
+            03/05                       Zelle Payment From Pat Example Ab1Cd2Ef3                $300.00
+            03/20                       Example Corp Payroll PPD ID: 1234567890                  200.00
+            Total Deposits and Additions                                                       $500.00
+*end*deposits and additions
+*start*checks paid section
+           CHECKS PAID
+            CHECK NO.        DESCRIPTION                         DATE PAID                      AMOUNT
+            1043 ^                                               03/11                          $40.00
+            Total Checks Paid                                                                   $40.00
+*end*checks paid section
+ *start*atm debit withdrawal
+            ATM & DEBIT CARD WITHDRAWALS
+                   DATE              DESCRIPTION                                                AMOUNT
+              03/09                  ATM Withdrawal 03/09 100 Main St Chicago IL Card 9999       $20.00
+              Total ATM & Debit Card Withdrawals                                                 $20.00
+ *end*atm debit withdrawal
+ *start*electronic withdrawal
+          ELECTRONIC WITHDRAWALS
+                   DATE              DESCRIPTION                                                AMOUNT
+              03/03                  Zelle Payment To Example Realty 30574485655             $1,000.00
+              03/15                  03/15 Payment To Chase Card Ending IN 3333                  200.50
+                                                                                          Page 2 of 4
+          ELECTRONIC WITHDRAWALS (continued)
+              Total Electronic Withdrawals                                                     $1,200.50
+ *end*electronic withdrawal
+         *start*global product
+                      CHASE SAVINGS
+                       TEST PERSON                                                  Account Number: 000000111114444
+         *end*global product
+         *start*summary
+                                       SAVINGS SUMMARY
+                      Beginning Balance                                                $50.00
+                      Ending Balance                                                   $50.02
+         *end*summary
+ *start*transaction detail
+            TRANSACTION DETAIL
+                   DATE        DESCRIPTION                                          AMOUNT          BALANCE
+                               Beginning Balance                                                    $50.00
+              04/01            Interest Payment                                       0.02            50.02
+                               Ending Balance                                                       $50.02
+ *end*transaction detail

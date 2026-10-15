@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: folio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: folio
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      # 32 random bytes, hex or base64. Encrypts stored statements, receipts,
+      # backups and connector secrets. Lose it and those are unrecoverable —
+      # keep a copy in your password manager.
+      FOLIO_ENC_KEY: ${FOLIO_ENC_KEY}
+      FOLIO_TZ: ${FOLIO_TZ:-America/Chicago}
+      # Optional: without these, files go to the brew-folio-files volume and
+      # the nightly DB backup is skipped.
+      BREW_BUCKET_URL: ${BREW_BUCKET_URL:-}
+      BREW_BUCKET_KEY: ${BREW_BUCKET_KEY:-}
+      BREW_BUCKET_BUCKET: ${BREW_BUCKET_BUCKET:-uploads}
+      BREW_BUCKET_BACKUP_BUCKET: ${BREW_BUCKET_BACKUP_BUCKET:-backups}
+      # Phase 2 — dry-dock categorization. Unused until then.
+      DRYDOCK_BASE_URL: ${DRYDOCK_BASE_URL:-}
+      DRYDOCK_API_KEY: ${DRYDOCK_API_KEY:-}
+    volumes:
+      - files_data:/data/files
+    expose:
+      - "3001"
+    networks: [internal]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks: [internal]
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    name: brew-folio-postgres
+  files_data:
+    name: brew-folio-files
+
+networks:
+  internal:
