@@ -25,6 +25,10 @@ const { parseFile } = require('../src/connectors');
     console.log(`reconciled   ${p.reconciled === null ? 'n/a (no balances in source)' : p.reconciled ? 'YES' : 'NO'}`);
     if (p.warnings.length) console.log(`warnings\n  - ${p.warnings.join('\n  - ')}`);
     if (p.balances.length) console.log(`balances     ${p.balances.map((b) => `${b.as_of} ${$(b.balance_cents)} (${b.source})`).join(', ')}`);
+    if (p.positions) {
+      console.log(`positions    ${p.positions.length}, total ${$(p.positions_total_cents)}${p.closing_cents != null ? ` vs statement ${$(p.closing_cents)}` : ''}`);
+      if (showRows) for (const x of p.positions) console.log(`  ${x.symbol.padEnd(14)} ${x.asset_type.padEnd(11)} ${String(x.quantity).padStart(12)} @ ${String(x.last_price ?? '—').padStart(10)} = ${$(x.value_cents).padStart(11)}  ${x.name.slice(0, 50)}`);
+    }
     if (showRows) for (const t of p.transactions) console.log(`  ${t.posted_on}  ${$(t.amount_cents).padStart(11)}  ${t.description_raw}`);
     }
   } catch (err) {

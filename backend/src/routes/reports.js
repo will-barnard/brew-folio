@@ -6,6 +6,8 @@ const { query } = require('../db/pool');
 const { today, monthBounds, addDays } = require('../lib/dates');
 const { badRequest } = require('../lib/errors');
 const { accountBalances } = require('../services/balances');
+const { INVEST_KINDS } = require('../services/portfolio');
+const quotes = require('../services/quotes');
 
 const router = express.Router();
 
@@ -27,6 +29,9 @@ function monthParam(m) {
 router.get('/reports/glance', async (req, res) => {
   const ym = monthParam(req.query.month);
   const { start, end } = monthBounds(ym);
+  // Opening the app is when prices should be current. Bounded, so a slow
+  // provider never holds the page; stale prices are used if it times out.
+  await quotes.refreshStale({ waitMs: 4000 });
 
   const [accounts, totals, streams, topCats, review, recent] = await Promise.all([
     accountBalances({ query }, { includeClosed: false }),
@@ -64,6 +69,7 @@ router.get('/reports/glance', async (req, res) => {
   ]);
 
   const netWorth = accounts.reduce((a, x) => a + x.balance_cents, 0);
+  const invest = accounts.filter((a) => INVEST_KINDS.includes(a.kind));
   // Staleness: an account with no data in 35+ days probably needs a fresh export.
   const staleBefore = addDays(today(), -35);
   res.json({
@@ -71,8 +77,16 @@ router.get('/reports/glance', async (req, res) => {
     net_worth_cents: netWorth,
     accounts: accounts.map((a) => ({
       id: a.id, name: a.name, kind: a.kind, balance_cents: a.balance_cents, balance_basis: a.balance_basis,
-      last_txn_on: a.last_txn_on, stale: !a.last_txn_on || a.last_txn_on < staleBefore,
+      last_txn_on: a.last_txn_on,
+      // Investment accounts don't get transactions, so "no recent data" doesn't apply.
+      stale: a.balance_basis !== 'positions' && !INVEST_KINDS.includes(a.kind) && (!a.last_txn_on || a.last_txn_on < staleBefore),
+      day_change_cents: a.day_change_cents ?? null,
     })),
+    investments: invest.length ? {
+      total_cents: invest.reduce((s, a) => s + a.balance_cents, 0),
+      day_change_cents: invest.reduce((s, a) => s + (a.day_change_cents || 0), 0),
+      quotes_as_of: invest.map((a) => a.quotes_as_of).filter(Boolean).sort()[0] || null,
+    } : null,
     ...totals.rows[0],
     streams: streams.rows.map((s) => ({ ...s, net_cents: s.income_cents - s.expense_cents })),
     top_categories: topCats.rows,

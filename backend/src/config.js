@@ -50,6 +50,8 @@ module.exports = {
     backupBucket: process.env.BREW_BUCKET_BACKUP_BUCKET || 'backups',
     prefix: 'folio/',
   },
+  // Optional. Without it, stock/ETF/fund prices only move when you import a statement.
+  tiingoKey: process.env.TIINGO_API_KEY || '',
   drydock: {
     baseUrl: (process.env.DRYDOCK_BASE_URL || '').replace(/\/+$/, ''),
     apiKey: process.env.DRYDOCK_API_KEY || '',

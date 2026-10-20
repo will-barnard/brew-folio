@@ -33,6 +33,7 @@ function createApp() {
   api.use(require('./routes/review'));
   api.use(require('./routes/rules'));
   api.use(require('./routes/reports'));
+  api.use(require('./routes/portfolio'));
   api.use(require('./routes/settings'));
   app.use('/api', api);
 

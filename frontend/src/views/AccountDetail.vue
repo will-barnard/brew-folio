@@ -5,10 +5,14 @@ import { useRef } from '../stores/ref';
 import { KIND_LABEL, shortDate, parseCents, todayISO, dayLabel } from '../format';
 import { toast } from '../toast';
 import Money from '../components/Money.vue';
+import Positions from '../components/Positions.vue';
+
+const INVEST = ['brokerage', 'retirement', 'exchange', 'wallet'];
 
 const props = defineProps({ id: { type: String, required: true } });
 const refs = useRef();
 const a = computed(() => refs.accountById[Number(props.id)]);
+const invest = computed(() => a.value && INVEST.includes(a.value.kind));
 const form = ref({});
 const recon = ref([]);
 const anchor = ref({ amount: '', as_of: todayISO(), owed: true });
@@ -44,18 +48,21 @@ async function setBalance() {
   <div v-if="a">
     <header class="page-head">
       <h1>{{ a.name }}</h1>
-      <RouterLink class="btn" :to="{ name: 'activity', query: { account_id: a.id } }">Transactions</RouterLink>
+      <RouterLink v-if="!invest" class="btn" :to="{ name: 'activity', query: { account_id: a.id } }">Transactions</RouterLink>
     </header>
 
     <div class="worth">
-      <div class="muted small">
+      <div v-if="invest" class="muted small">Value of holdings at current prices</div>
+      <div v-else class="muted small">
         Balance<template v-if="a.anchor_on">, from the {{ a.anchor_source === 'manual' ? 'balance you entered' : a.anchor_source }} on {{ shortDate(a.anchor_on) }} plus everything since</template>
       </div>
       <Money :cents="a.balance_cents" hero />
     </div>
     <p v-if="err" class="error">{{ err }}</p>
 
-    <section class="section">
+    <Positions v-if="invest" :account-id="a.id" :account-kind="a.kind" @changed="refs.loadAccounts()" />
+
+    <section v-if="!invest" class="section">
       <h2>Monthly check</h2>
       <p v-if="!recon.length" class="small muted">
         Import this account’s statement PDFs and each month gets checked here: the statement’s rows must add up,
@@ -72,7 +79,7 @@ async function setBalance() {
       </ul>
     </section>
 
-    <section class="section panel">
+    <section v-if="!invest" class="section panel">
       <h2>Starting balance</h2>
       <p class="small muted">
         Anchors the running balance. Statements and checking CSVs set this automatically; use this for accounts without them.

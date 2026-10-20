@@ -17,6 +17,11 @@ const STRONG = [
   /payment to chase card/i,
   /online (banking )?transfer (to|from)/i,
   /\btransfer (to|from) (chk|sav|checking|savings)/i,
+  // Money moving to/from your investment accounts. These accounts hold
+  // positions, not transactions, so there's never a partner row to pair with.
+  /\bFID BKG SVC\b/i,
+  /\bfidelity\b/i,
+  /\bcoinbase\b/i,
 ];
 const WEAK = [
   /\bautopay\b/i,

@@ -7,6 +7,7 @@ const storage = require('./storage');
 const { ingest } = require('./ingest');
 const { audit } = require('./audit');
 const { lockedThrough } = require('./locks');
+const quotes = require('./quotes');
 const { conflict, notFound, badRequest } = require('../lib/errors');
 
 const COMPATIBLE = {
@@ -14,6 +15,8 @@ const COMPATIBLE = {
   savings: ['checking', 'savings'],
   credit: ['credit'],
   loan: ['loan'],
+  brokerage: ['brokerage', 'retirement'],
+  retirement: ['brokerage', 'retirement'],
 };
 
 async function guessAccount({ last4, accountKind }, db = { query }) {
@@ -70,6 +73,7 @@ async function createBatch(up, { origin = 'web', accountId = null } = {}) {
         parsed?.closing_cents ?? null, parsed?.parsed_sum_cents ?? null, parsed?.reconciled ?? null,
         parsed ? JSON.stringify({
           source: parsed.source, transactions: parsed.transactions, balances: parsed.balances, account_label: parsed.accountLabel || null,
+          institution: parsed.institution || 'Chase', positions: parsed.positions || null, as_of: parsed.period_end,
         }) : null,
         JSON.stringify(parsed?.warnings || []), error],
     );
@@ -92,8 +96,10 @@ async function getBatch(id, { previewRows = 25 } = {}) {
     `SELECT id, detected_kind, detected_last4, status FROM import_batches
       WHERE (sha256 = $1 OR sha256 LIKE $1 || ':%') AND id <> $2 ORDER BY id`, [base, id]);
   return {
-    ...rest, row_count: rows.length, preview: rows.slice(0, previewRows),
-    account_label: parsed?.account_label || null, balances: parsed?.balances || [], siblings: sib,
+    ...rest, row_count: parsed?.positions ? parsed.positions.length : rows.length, preview: rows.slice(0, previewRows),
+    positions_preview: parsed?.positions || null,
+    account_label: parsed?.account_label || null, institution: parsed?.institution || null,
+    balances: parsed?.balances || [], siblings: sib,
   };
 }
 
@@ -119,19 +125,64 @@ async function commitBatch(id, { accountId = null, force = false, actor }) {
       await db.query('UPDATE accounts SET last4 = $2 WHERE id = $1', [acctId, b.detected_last4]);
     }
 
-    const { stats } = await ingest(db, {
-      accountId: acctId,
-      source: b.parsed.source,
-      rows: b.parsed.transactions,
-      batchId: id,
-      balances: b.parsed.balances,
-    });
+    const stats = b.parsed.positions
+      ? await replacePositions(db, { accountId: acctId, parsed: b.parsed, force })
+      : (await ingest(db, {
+        accountId: acctId,
+        source: b.parsed.source,
+        rows: b.parsed.transactions,
+        batchId: id,
+        balances: b.parsed.balances,
+      })).stats;
     await db.query(
       `UPDATE import_batches SET status = 'imported', account_id = $2, stats = $3, parsed = NULL, imported_at = now()
         WHERE id = $1`, [id, acctId, JSON.stringify(stats)]);
     await audit(db, { actor, action: 'import', entity: 'import_batch', entityId: id, after: stats });
     return stats;
   });
+}
+
+// A positions import (Fidelity statement / CSV) replaces the account's holdings
+// wholesale — the file is the full picture as of its date. The previous
+// holdings are kept in the batch's stats so an undo can put them back.
+async function replacePositions(db, { accountId, parsed, force }) {
+  const asOf = parsed.as_of;
+  const { rows: current } = await db.query('SELECT * FROM positions WHERE account_id = $1 ORDER BY id', [accountId]);
+  const newest = current.map((p) => p.as_of).filter(Boolean).sort().at(-1);
+  if (newest && asOf && newest > asOf && !force) {
+    throw conflict(`This account’s positions are newer (as of ${newest}) than this file (${asOf})`, { needsForce: true });
+  }
+  await db.query('DELETE FROM positions WHERE account_id = $1', [accountId]);
+  const source = parsed.source === 'fidelity-csv' ? 'fidelity-csv' : 'fidelity-pdf';
+  for (const p of parsed.positions) {
+    await db.query(
+      `INSERT INTO positions (account_id, symbol, name, asset_type, quantity, cost_basis_cents, source, as_of)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       ON CONFLICT (account_id, symbol) DO UPDATE SET quantity = positions.quantity + EXCLUDED.quantity`,
+      [accountId, p.symbol, p.name, p.asset_type, p.quantity, p.cost_basis_cents, source, asOf]);
+    await quotes.saveImportedQuote(db, p.symbol, p.asset_type, p.last_price, asOf, source);
+  }
+  return {
+    positions: parsed.positions.length,
+    value_cents: parsed.positions.reduce((t, p) => t + (p.value_cents || 0), 0),
+    as_of: asOf,
+    previous: current.map(({ id: _i, account_id: _a, updated_at: _u, ...rest }) => rest),
+  };
+}
+
+async function restorePositions(db, b) {
+  const { rows: later } = await db.query(
+    `SELECT 1 FROM import_batches WHERE account_id = $1 AND status = 'imported' AND id > $2
+        AND stats ? 'positions' LIMIT 1`, [b.account_id, b.id]);
+  if (later.length) throw conflict('A newer positions import exists for this account — undo that one first');
+  await db.query('DELETE FROM positions WHERE account_id = $1', [b.account_id]);
+  for (const p of b.stats.previous || []) {
+    await db.query(
+      `INSERT INTO positions (account_id, symbol, name, asset_type, quantity, cost_basis_cents, manual_price, source, as_of)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      [b.account_id, p.symbol, p.name, p.asset_type, p.quantity, p.cost_basis_cents, p.manual_price, p.source, p.as_of]);
+  }
+  return (b.stats.previous || []).length;
 }
 
 // Remove a batch and everything it put in the ledger. If another source
@@ -143,7 +194,9 @@ async function undoBatch(id, { actor }) {
     if (!b) throw notFound('Import not found');
     let removed = 0;
     let promoted = 0;
-    if (b.status === 'imported') {
+    if (b.status === 'imported' && b.stats?.positions !== undefined) {
+      promoted = await restorePositions(db, b); // "promoted" = previous holdings put back
+    } else if (b.status === 'imported') {
       const through = await lockedThrough(db, b.account_id);
       if (through) {
         const { rows } = await db.query('SELECT 1 FROM transactions WHERE import_batch_id = $1 AND posted_on <= $2 LIMIT 1', [id, through]);

@@ -3,6 +3,7 @@
 // With no anchor, the balance is the plain sum of transactions — flagged as
 // 'sum' so the UI can say "set a starting balance".
 const { today } = require('../lib/dates');
+const { INVEST_KINDS, valuesByAccount } = require('./portfolio');
 
 const ANCHORS = "('statement','csv','manual','sync')";
 
@@ -32,7 +33,17 @@ async function accountBalances(db, { asOf = null, includeClosed = true } = {}) {
       ORDER BY a.is_closed, a.sort, a.id`,
     [on, includeClosed],
   );
-  return rows.map((r) => ({ ...r, balance_basis: r.anchor_on ? 'anchor' : 'sum' }));
+  // Investment accounts with positions are worth their positions at current
+  // prices; their transactions (a contribution landing, say) don't move it.
+  const values = await valuesByAccount(db);
+  return rows.map((r) => {
+    const v = values.get(r.id);
+    if (INVEST_KINDS.includes(r.kind) && v) {
+      return { ...r, balance_cents: v.value_cents, balance_basis: 'positions', day_change_cents: v.day_change_cents,
+        positions_count: v.count, unpriced: v.unpriced, quotes_as_of: v.oldest_quote };
+    }
+    return { ...r, balance_basis: r.anchor_on ? 'anchor' : 'sum' };
+  });
 }
 
 // Nightly: record today's computed balance for every open account, so

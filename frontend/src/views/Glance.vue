@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import { api, qs } from '../api';
 import { useRef } from '../stores/ref';
 import { privateMode } from '../privacy';
-import { monthLabel, shiftMonth, todayISO, KIND_LABEL } from '../format';
+import { monthLabel, shiftMonth, todayISO, KIND_LABEL, ago } from '../format';
 import Money from '../components/Money.vue';
 import TxRow from '../components/TxRow.vue';
 import TxSheet from '../components/TxSheet.vue';
@@ -62,6 +62,15 @@ const isCurrent = () => month.value === todayISO().slice(0, 7);
           </div>
         </div>
 
+        <div v-if="g.investments" class="invest-line">
+          <span class="muted small">Investments</span>
+          <Money :cents="g.investments.total_cents" class="flow-n" />
+          <span v-if="g.investments.day_change_cents" class="small" :class="g.investments.day_change_cents > 0 ? 'in' : 'muted'">
+            <Money :cents="g.investments.day_change_cents" sign="always" /> today
+          </span>
+          <span v-if="g.investments.quotes_as_of" class="small faint">prices {{ ago(g.investments.quotes_as_of) }}</span>
+        </div>
+
         <RouterLink v-if="g.review_count" to="/review" class="review-cta">
           <span><strong>{{ g.review_count }}</strong> transaction{{ g.review_count === 1 ? '' : 's' }} need a category</span>
           <span class="btn primary">Review</span>
@@ -101,7 +110,10 @@ const isCurrent = () => month.value === todayISO().slice(0, 7);
                   <span class="small faint">{{ KIND_LABEL[a.kind] }}</span>
                   <span v-if="a.stale" class="small uncat-text">needs a fresh import</span>
                 </span>
-                <Money :cents="a.balance_cents" />
+                <span class="acct-right">
+                  <Money :cents="a.balance_cents" />
+                  <Money v-if="a.day_change_cents" class="small" :class="a.day_change_cents > 0 ? 'in' : 'faint'" :cents="a.day_change_cents" sign="always" />
+                </span>
               </RouterLink>
             </li>
           </ul>
@@ -128,6 +140,7 @@ const isCurrent = () => month.value === todayISO().slice(0, 7);
 .flow { display: flex; flex-wrap: wrap; gap: 10px 28px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
 .flow > div { display: grid; gap: 2px; }
 .flow-n { font-size: var(--step-1); }
+.invest-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
 .review-cta {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px;
   padding: 12px 12px 12px 16px; border-radius: 12px; background: var(--brass-soft); text-decoration: none;
@@ -141,5 +154,6 @@ const isCurrent = () => month.value === todayISO().slice(0, 7);
 .cat-line, .acct-line { display: flex; justify-content: space-between; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--rule); }
 .cat-line a, .acct-line { text-decoration: none; }
 .uncat-text { color: var(--brass); }
+.acct-right { display: grid; justify-items: end; }
 .acct-left { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; }
 </style>

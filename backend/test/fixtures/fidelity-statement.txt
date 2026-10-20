@@ -1,0 +1,40 @@
+                                                                                         INVESTMENT REPORT
+                                                                               March 1, 2026 - March 31, 2026
+Portfolio Summary
+Accounts Included in This Report
+Page   Account Type/Name                                                  Number         Beginning Value          Ending Value
+       GENERAL INVESTMENTS
+4      FIDELITY ACCOUNT TEST PERSON - INDIVIDUAL                          X11-111111           $1,000.00             $1,450.00
+       PERSONAL RETIREMENT
+9      FIDELITY ROTH IRA TEST PERSON - ROTH INDIVIDUAL RETIREMENT         222-222222            9,000.00              9,812.50
+Fidelity.com
+                                                                                                                                       Account # X11-111111
+Holdings                                                                                                         TEST PERSON - INDIVIDUAL
+Core Account
+                                                   Beginning                                   Price              Ending                                    Unrealized
+Description                                       Mar 1, 2026        Mar 31, 2026       Mar 31, 2026         Mar 31, 2026             Cost Basis          Mar 31, 2026          EY (%)
+FIDELITY GOVERNMENT MONEY                           $100.00              250.000           $1.0000               $250.00           not applicable        not applicable        $9.00
+MARKET (SPAXX)                                                                                                                                                                 3.430%
+-- 7-day yield: 3.48%
+Total Core Account (17% of account                  $100.00                                                      $250.00
+holdings)
+Exchange Traded Products
+Description                                       Mar 1, 2026        Mar 31, 2026       Mar 31, 2026         Mar 31, 2026             Cost Basis          Mar 31, 2026          EY (%)
+Equity ETPs
+VANGUARD INDEX FUNDS S&P 500 ETF                      $900.00               2.000           $600.0000            $1,200.00             $1,000.00                $200.00          10.00
+USD (VOO)                                                                                                                                                                  1.060
+                                                                                                                                                                       5 of 20
+                                                                                                                                                        INVESTMENT REPORT
+Total Holdings                                                                                                    $1,450.00             $1,000.00               $200.00
+                                                                                                                                       Account # 222-222222
+Holdings                                                                                                         TEST PERSON - ROTH IRA
+Mutual Funds
+Description                                       Mar 1, 2026        Mar 31, 2026       Mar 31, 2026         Mar 31, 2026           Cost      Mar 31, 2026          EY (%)
+Stock Funds
+FIDELITY 500 INDEX FUND(FXAIX)                     $9,000.00              30.000         $250.0000           $7,500.00      $5,000.00         $2,500.00         $70.00
+Stocks
+Common Stock
+APPLE INC (AAPL)                                     2,000.00             10.000         231.2500            2,312.50       1,500.00            812.50            8.00
+RESTRICTED THING                                   unavailable           50.000                 -         unavailable        unknown          unknown              -
+Total Holdings                                                                                                    $9,812.50             $6,500.00               $3,312.50
+Activity

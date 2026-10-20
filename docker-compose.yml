@@ -42,6 +42,8 @@ services:
       BREW_BUCKET_KEY: ${BREW_BUCKET_KEY:-}
       BREW_BUCKET_BUCKET: ${BREW_BUCKET_BUCKET:-uploads}
       BREW_BUCKET_BACKUP_BUCKET: ${BREW_BUCKET_BACKUP_BUCKET:-backups}
+      # Live prices for stocks, ETFs and mutual funds (free key at tiingo.com).
+      TIINGO_API_KEY: ${TIINGO_API_KEY:-}
       # Phase 2 — dry-dock categorization. Unused until then.
       DRYDOCK_BASE_URL: ${DRYDOCK_BASE_URL:-}
       DRYDOCK_API_KEY: ${DRYDOCK_API_KEY:-}

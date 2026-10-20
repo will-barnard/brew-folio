@@ -1,0 +1,9 @@
+Account Number,Account Name,Symbol,Description,Quantity,Last Price,Last Price Change,Current Value,Today's Gain/Loss Dollar,Today's Gain/Loss Percent,Total Gain/Loss Dollar,Total Gain/Loss Percent,Percent Of Account,Cost Basis Total,Average Cost Basis,Type
+X11111111,Individual,SPAXX**,HELD IN MONEY MARKET,,,,$250.00,,,,,17.24%,,,Cash,
+X11111111,Individual,VOO,VANGUARD S&P 500 ETF,2,$600.00,+$1.00,$1200.00,+$2.00,+0.17%,+$200.00,+20.00%,82.76%,$1000.00,$500.00,Cash,
+X11111111,Individual,Pending Activity,,,,,$-25.00,,,,,,,,,
+222222222,ROTH IRA,FXAIX,FIDELITY 500 INDEX FUND,30,$250.00,+$0.50,$7500.00,+$15.00,+0.20%,+$2500.00,+50.00%,76.43%,$5000.00,$166.67,Cash,
+
+"The data and information in this spreadsheet is provided to you solely for your use and is not for distribution."
+
+"Date downloaded Mar-31-2026 4:15 p.m ET"

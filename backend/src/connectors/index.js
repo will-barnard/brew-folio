@@ -9,6 +9,7 @@
 const fsp = require('fs/promises');
 const chaseCsv = require('./chase-csv');
 const chasePdf = require('./chase-pdf');
+const fidelity = require('./fidelity');
 const { unprocessable } = require('../lib/errors');
 
 // Always resolves to an array: one parsed result per account in the file
@@ -19,17 +20,20 @@ async function parseFile({ path, filename, mime }) {
   try { await fh.read(head, 0, 5, 0); } finally { await fh.close(); }
 
   if (head.toString('latin1') === '%PDF-') {
-    return chasePdf.parse(path);
+    const text = await chasePdf.extractText(path);
+    if (fidelity.sniffPdf(text)) return fidelity.parseStatementText(text);
+    return chasePdf.parseText(text);
   }
   const looksText = /csv|text|excel|octet-stream/i.test(mime) || /\.(csv|txt)$/i.test(filename);
   if (looksText) {
     const text = await fsp.readFile(path, 'utf8');
     if (chaseCsv.sniff(text)) return [chaseCsv.parse(text, { filename })];
+    if (fidelity.sniffCsv(text)) return fidelity.parseCsvText(text, { filename });
     if (/^OFXHEADER|<OFX>/i.test(text.slice(0, 500))) {
       throw unprocessable('QFX/OFX import isn’t built yet — export CSV from Chase instead');
     }
   }
-  throw unprocessable('Unrecognised file. Supported now: Chase activity CSV (checking or card) and Chase statement PDFs (checking, savings, cards, auto loans).');
+  throw unprocessable('Unrecognised file. Supported now: Chase activity CSV and statement PDFs (checking, savings, cards, auto loans), Fidelity statement PDFs and Positions CSV.');
 }
 
 // Sync connectors, scaffolded so the UI can show what's coming. Each returns
@@ -40,7 +44,6 @@ const planned = [
   { id: 'gcp-billing', name: 'Google Cloud billing (BigQuery export)', phase: 3, covers: 'Hosting cost detail per project' },
   { id: 'paypal', name: 'PayPal', phase: 3, covers: 'Music income' },
   { id: 'venmo-csv', name: 'Venmo CSV', phase: 3, covers: 'Monthly statement upload' },
-  { id: 'coinbase', name: 'Coinbase (read-only)', phase: 4, covers: 'Crypto holdings' },
   { id: 'gear-tracker', name: 'gear-tracker', phase: 4, covers: 'Instrument valuations — needs its API' },
   { id: 'seedbook', name: 'Seedbook', phase: 5, covers: 'Open proposals → expected income' },
 ];
@@ -48,6 +51,8 @@ const planned = [
 const available = [
   { id: 'chase-csv', name: 'Chase activity CSV', phase: 1, covers: 'Checking + cards, any date range' },
   { id: 'chase-pdf', name: 'Chase statement PDF', phase: 1, covers: 'Checking, savings, cards and auto loans, with balance reconciliation' },
+  { id: 'fidelity', name: 'Fidelity statement PDF / Positions CSV', phase: 2, covers: 'Brokerage and Roth IRA holdings' },
+  { id: 'positions', name: 'Manual positions', phase: 2, covers: 'Coinbase or anything else — quantities you enter, valued at live prices' },
   { id: 'manual', name: 'Manual / quick add', phase: 0, covers: 'Cash, checks, anything' },
 ];
 

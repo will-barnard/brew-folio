@@ -45,7 +45,7 @@ async function viewReceipt(r) { window.open(await api.blobUrl(`/receipts/${r.id}
 
     <label class="drop" :class="{ on: dragging }" @dragover.prevent="dragging = true" @dragleave="dragging = false" @drop.prevent="onDrop">
       <Icon name="upload" :size="28" />
-      <span><strong>Add Chase CSVs or statement PDFs</strong></span>
+      <span><strong>Add Chase CSVs and statements, or Fidelity statements</strong></span>
       <span class="small muted">Drop files here or choose them. Nothing touches your ledger until you confirm each one.</span>
       <input type="file" multiple accept=".csv,.CSV,text/csv,application/pdf" class="sr-only" @change="send($event.target.files)" />
     </label>

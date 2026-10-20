@@ -8,6 +8,14 @@ import Money from '../components/Money.vue';
 import Sheet from '../components/Sheet.vue';
 
 const refs = useRef();
+const PRESETS = [
+  { name: 'Chase Checking', kind: 'checking', institution: 'Chase' },
+  { name: 'Chase card', kind: 'credit', institution: 'Chase' },
+  { name: 'Fidelity Roth IRA', kind: 'retirement', institution: 'Fidelity' },
+  { name: 'Fidelity Brokerage', kind: 'brokerage', institution: 'Fidelity' },
+  { name: 'Coinbase', kind: 'exchange', institution: 'Coinbase' },
+  { name: 'Cash', kind: 'cash', institution: '' },
+];
 refs.loadAccounts();
 const adding = ref(false);
 const form = ref({ name: '', kind: 'checking', institution: 'Chase', last4: '', entity_id: null });
@@ -55,6 +63,7 @@ async function save() {
         <button class="btn" @click="startAdd({ name: 'Chase Checking', kind: 'checking' })">Chase checking</button>
         <button class="btn" @click="startAdd({ name: 'Chase card', kind: 'credit' })">A Chase card</button>
         <button class="btn" @click="startAdd({ name: 'Cash', kind: 'cash', institution: '' })">Cash</button>
+        <button class="btn" @click="startAdd({ name: 'Coinbase', kind: 'exchange', institution: 'Coinbase' })">Coinbase</button>
       </div>
     </div>
 
@@ -67,7 +76,9 @@ async function save() {
             <Money class="acct-bal" :cents="a.balance_cents" />
             <span class="small muted">
               {{ KIND_LABEL[a.kind] }}<template v-if="a.last4"> ending {{ a.last4 }}</template>
-              <template v-if="a.balance_basis === 'sum' && a.kind !== 'cash'">, no starting balance yet</template>
+              <template v-if="a.balance_basis === 'positions'">, {{ a.positions_count }} holding{{ a.positions_count === 1 ? '' : 's' }}</template>
+              <template v-else-if="['brokerage', 'retirement', 'exchange', 'wallet'].includes(a.kind)">, no holdings yet</template>
+              <template v-else-if="a.balance_basis === 'sum' && a.kind !== 'cash'">, no starting balance yet</template>
             </span>
           </RouterLink>
         </li>
@@ -78,6 +89,9 @@ async function save() {
 
     <Sheet v-if="adding" title="Add account" @close="adding = false">
       <form @submit.prevent="save">
+        <div class="chips presets" role="group" aria-label="Start from">
+          <button v-for="p in PRESETS" :key="p.name" type="button" class="chip" @click="Object.assign(form, p)">{{ p.name }}</button>
+        </div>
         <label class="field"><span>Name</span><input v-model="form.name" class="input" required maxlength="80" placeholder="Chase Sapphire" /></label>
         <div class="row-fields">
           <label class="field"><span>Type</span>
@@ -107,4 +121,5 @@ async function save() {
 .acct-name { font-weight: 500; }
 .acct-bal { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-size: var(--step-1); }
 .total { margin-top: 16px; display: flex; gap: 8px; align-items: baseline; }
+.presets { margin-bottom: 16px; }
 </style>

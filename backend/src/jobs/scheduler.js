@@ -9,13 +9,18 @@ const queue = require('./queue');
 const { today, hourIn } = require('../lib/dates');
 const { snapshotAll } = require('../services/balances');
 const { runBackup } = require('./backup');
+const quotes = require('../services/quotes');
 
 const DAILY = [
   { kind: 'balance_snapshot', hour: 2 },
   { kind: 'db_backup', hour: 3 },
 ];
 
-queue.register('balance_snapshot', async () => ({ accounts: await snapshotAll(pool) }));
+// Fresh prices first, so the night's investment values aren't stale.
+queue.register('balance_snapshot', async () => {
+  const q = await quotes.refreshShared().catch((err) => ({ error: err.message }));
+  return { accounts: await snapshotAll(pool), quotes: q };
+});
 queue.register('db_backup', runBackup);
 
 async function tick() {
